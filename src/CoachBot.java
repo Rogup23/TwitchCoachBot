@@ -1,6 +1,5 @@
 import org.jibble.pircbot.PircBot;
 
-
 public class CoachBot extends PircBot {
     public CoachBot() {
         this.setName("HaraldBot");
@@ -8,10 +7,10 @@ public class CoachBot extends PircBot {
 
     public void onMessage(String channel, String sender, String login, String hostname, String message) {
         //sendMessage(channel, "Hallo ich bin Harald!");
-        if (message.equalsIgnoreCase("!hello")) {
+        if (message.toLowerCase().contains("hello")) {
             sendMessage(channel, "Hello there!");
         }
-        if (message.equalsIgnoreCase("!test")) {
+        if (message.equalsIgnoreCase("test")) {
             sendMessage(channel, "Das ist ein Test!");
         }
     }
