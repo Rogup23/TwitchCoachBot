@@ -5,6 +5,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class CoachBot extends PircBot {
     private Timer inactivityTimer;
@@ -19,12 +21,12 @@ public class CoachBot extends PircBot {
         questionTimestamps = new HashMap<>();
     }
 
-    /*
-    private static final List<String> TRIGGER_WORDS = List.of("highlight", "clip", "video", "aufnahme");
+
+    //private static final List<String> TRIGGER_WORDS = List.of("highlight", "clip", "video", "aufnahme");
     private static final String TWITCH_CLIENT_ID = "gp762nuuoqcoxypju8c569th9wz7q5";
-    private static final String TWITCH_OAUTH_TOKEN = "3yr7z9erqgs28idjtfzydsugzkaj80";
-    private static final String BROADCASTER_ID = "1230080320";
-    */
+    private static final String TWITCH_OAUTH_TOKEN = "2srx37kvgw5gu2khzgopqy15tayjnb";
+    private static final String BROADCASTER_ID = "143799166";
+
 
     public void onMessage(String channel, String sender, String login, String hostname, String message) {
         resetInactivityTimer(channel);
@@ -132,16 +134,8 @@ public class CoachBot extends PircBot {
             }
         }, 5 * 60 * 1000, 5 * 60 * 1000);
 
-        reminderTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                sendMessage("#rogup23", "Hast du schon etwas getrunken?");
-                analyzeChat();
-                resetReminderTimer("#rogup23");
-            }
-        }, 2 * 60 * 1000, 2 * 60 * 1000);
+        resetReminderTimer("#rogup23");
     }
-    //Nach Timer Ablauf: TTS Nachricht Chat Inaktiv
 
     private void resetInactivityTimer(String channel) {
         inactivityTimer.cancel();
@@ -149,8 +143,19 @@ public class CoachBot extends PircBot {
     }
 
     private void resetReminderTimer(String channel) {
-        reminderTimer.cancel();
-        startInactivityTimer();
+        if (reminderTimer != null) {
+            reminderTimer.cancel();
+            reminderTimer.purge(); // Ensure all cancelled tasks are removed
+        }
+        reminderTimer = new Timer();
+        reminderTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                sendMessage(channel, "Hast du schon etwas getrunken?");
+                analyzeChat();
+                resetReminderTimer(channel);
+            }
+        }, 15 * 60 * 1000, 15 * 60 * 1000);
     }
 
     private void analyzeChat() {
@@ -182,12 +187,42 @@ public class CoachBot extends PircBot {
         }
     }
 
-    // Placeholder method to get the number of viewers
     private int getNumberOfViewers() {
-        return 10;
+        try {
+            URL url = new URL("https://api.twitch.tv/helix/streams?user_id=" + BROADCASTER_ID);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Client-Id", TWITCH_CLIENT_ID);
+            connection.setRequestProperty("Authorization", "Bearer " + TWITCH_OAUTH_TOKEN);
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                // Parse the response to get the viewer count
+                JSONObject jsonResponse = new JSONObject(response.toString());
+                JSONArray data = jsonResponse.getJSONArray("data");
+                if (data.length() > 0) {
+                    JSONObject stream = data.getJSONObject(0);
+                    return stream.getInt("viewer_count");
+                } else {
+                    System.out.println("No active stream found.");
+                    return 0;
+                }
+            } else {
+                System.out.println("Failed to get viewer count: " + responseCode);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     //TTS? TTS API, z.B. Google Text-to-Speech
-
-    //Laune erkennen, Chat inaktiv? Formel?
 }
