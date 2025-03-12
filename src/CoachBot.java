@@ -23,9 +23,9 @@ public class CoachBot extends PircBot {
 
 
     //private static final List<String> TRIGGER_WORDS = List.of("highlight", "clip", "video", "aufnahme");
-    private static final String TWITCH_CLIENT_ID = "gp762nuuoqcoxypju8c569th9wz7q5";
-    private static final String TWITCH_OAUTH_TOKEN = "2srx37kvgw5gu2khzgopqy15tayjnb";
-    private static final String BROADCASTER_ID = "143799166";
+    //private static final String TWITCH_CLIENT_ID = "gp762nuuoqcoxypju8c569th9wz7q5";
+    //private static final String TWITCH_OAUTH_TOKEN = "2srx37kvgw5gu2khzgopqy15tayjnb";
+    //private static final String BROADCASTER_ID = "143799166";
 
 
     public void onMessage(String channel, String sender, String login, String hostname, String message) {
@@ -33,41 +33,43 @@ public class CoachBot extends PircBot {
         long currentTime = System.currentTimeMillis();
 
         if (message.contains("?")) {
-            // Update the sender's message timestamps
+            // Timestamps von Chat Nachrichten aktualisieren
             senderMessageTimestamps.putIfAbsent(sender, new ArrayList<>());
             List<Long> timestamps = senderMessageTimestamps.get(sender);
             timestamps.add(currentTime);
 
-            // Remove timestamps older than 1 minute
+            // Alte Nachrichten Timestamps entfernen (nach einer Minute)
             timestamps.removeIf(timestamp -> currentTime - timestamp > 60 * 1000);
 
-            // Check if the sender has sent 3 messages containing "?" within the last minute
+            // Wurde in der letzten Minute 3-mal eine Frage gestellt? Dann soll der Bot den Streamer darauf hinweisen.
             if (timestamps.size() >= 3) {
                 sendMessage(channel, "Frage!!!");
                 timestamps.clear(); // Reset the timestamps after sending the message
             }
 
-            // Convert message to lowercase for case-insensitive comparison
+            // Nachricht in Kleinbuchstaben umwandeln
             String lowerCaseMessage = message.toLowerCase();
 
-            // Update the question timestamps
+            // Timestamps von Fragen aktualisieren
             questionTimestamps.putIfAbsent(lowerCaseMessage, new ArrayList<>());
             List<Long> questionTimes = questionTimestamps.get(lowerCaseMessage);
             questionTimes.add(currentTime);
 
-            // Remove question timestamps older than 1 minute
+            // Timestamps von Fragen entfernen (nach einer Minute)
             questionTimes.removeIf(timestamp -> currentTime - timestamp > 60 * 1000);
 
-            // Check if the same question has been asked by different users within the last minute
+            // Wurde die gleiche Frage 3-mal in letzter Zeit gestellt? Dann soll der Bot den Streamer darauf hinweisen.
             if (questionTimes.size() >= 3) {
                 sendMessage(channel, "Es wurde oft gefragt: \"" + message + "\"");
                 questionTimes.clear(); // Reset the question timestamps after sending the message
             }
         }
 
-        if (message.toLowerCase().contains("hello")) {
-            sendMessage(channel, "Hello there!");
+        //Test Nachricht
+        if (message.toLowerCase().contains("hallo")) {
+            sendMessage(channel, "Hallo ich bin haraldbotspl!");
         }
+        //Clip funktion verworfen
         /*
         if (containsTrigger(message)) { //Clip testen
             sendMessage(channel, "Clip the last 30 seconds");
@@ -122,9 +124,9 @@ public class CoachBot extends PircBot {
     }
     */
 
+    //Weist dem Streamer darauf hin, dass in den letzten 5 Minuten im Chat keine Nachricht geschrieben wurde.
     private void startInactivityTimer() {
         inactivityTimer = new Timer();
-        reminderTimer = new Timer();
 
         inactivityTimer.schedule(new TimerTask() {
             @Override
@@ -132,32 +134,32 @@ public class CoachBot extends PircBot {
                 sendMessage("#rogup23", "Ganz schön ruhig hier");
                 resetInactivityTimer("#rogup23");
             }
-        }, 5 * 60 * 1000, 5 * 60 * 1000);
+        }, 2 * 60 * 1000, 2 * 60 * 1000);
 
         resetReminderTimer("#rogup23");
     }
 
+    //Setzt den Inaktivitätstimer zurück
     private void resetInactivityTimer(String channel) {
         inactivityTimer.cancel();
         startInactivityTimer();
     }
 
+    //Setzt den Erinnerungstimer zurück
     private void resetReminderTimer(String channel) {
-        if (reminderTimer != null) {
-            reminderTimer.cancel();
-            reminderTimer.purge(); // Ensure all cancelled tasks are removed
-        }
         reminderTimer = new Timer();
         reminderTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                sendMessage(channel, "Hast du schon etwas getrunken?");
-                analyzeChat();
-                resetReminderTimer(channel);
+                sendMessage(channel, "Hast du schon etwas getrunken?"); //Erinnerung an den Streamer, etwas zu trinken
+                //analyzeChat();
+                resetReminderTimer("#rogup23");
             }
-        }, 15 * 60 * 1000, 15 * 60 * 1000);
+        }, 3 * 60 * 1000, 3 * 60 * 1000);
     }
 
+    //gestrichen, eine Stimmungsanalyse mithilfe von KI wäre sinnvoller.
+    /*
     private void analyzeChat() {
         System.out.println("Analyzing chat...");
 
@@ -223,6 +225,6 @@ public class CoachBot extends PircBot {
         }
         return 0;
     }
+    */
 
-    //TTS? TTS API, z.B. Google Text-to-Speech
 }
