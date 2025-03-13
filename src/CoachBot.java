@@ -60,12 +60,24 @@ public class CoachBot extends PircBot {
                 sendMessage(channel, "Es wurde oft gefragt: \"" + message + "\"");
                 questionTimes.clear(); // Reset the question timestamps after sending the message
             }
+
+            if (message.toLowerCase().contains("tastatur")) {
+                sendMessage(channel, "Ich habe eine Tastatur von Razer, die Blackwidow Elite"); //Technik Frage Filler Antwort
+            }
+
+            if (message.toLowerCase().contains("maus")) {
+                sendMessage(channel, "Ich habe eine Maus von Razer, die Deathadder Elite"); //Technik Frage Filler Antwort
+            }
+
+            if(message.toLowerCase().contains("mikro")){
+                sendMessage(channel, "Ich benutze das Rode NT-USB Mikrofon"); //Technik Frage Filler Antwort
+            }
         }
 
-        // Check for spam
+        // Spam Checker
         if (messageTimes.size() >= 10) {
             sendMessage(channel, "Achtung Spam!");
-            messageTimes.clear(); // Reset the message timestamps after sending the warning
+            messageTimes.clear(); // Timestaps von Nachrichten entfernen
         }
 
         //Test Nachricht
@@ -73,13 +85,8 @@ public class CoachBot extends PircBot {
             sendMessage(channel, "Hallo ich bin haraldbotspl!");
         }
 
-        if (message.toLowerCase().contains("tastatur")) {
-            sendMessage(channel, "Ich habe eine Tastatur von Razer, die Blackwidow Elite"); //Technik Frage Filler Antwort
-        }
 
-        if (message.toLowerCase().contains("maus")) {
-            sendMessage(channel, "Ich habe eine Maus von Razer, die Deathadder Elite"); //Technik Frage Filler Antwort
-        }
+
         //Clip funktion verworfen
         /*
         if (containsTrigger(message)) { //Clip testen
