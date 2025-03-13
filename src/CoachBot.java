@@ -11,14 +11,17 @@ import org.json.JSONObject;
 public class CoachBot extends PircBot {
     private Timer inactivityTimer;
     private Timer reminderTimer;
-    private Map<String, List<Long>> senderMessageTimestamps;
+    //private Map<String, List<Long>> senderMessageTimestamps;
     private Map<String, List<Long>> questionTimestamps;
+    private Map<String, List<Long>> messageTimestamps;
 
     public CoachBot() {
         this.setName("haraldbotspl");
         startInactivityTimer();
-        senderMessageTimestamps = new HashMap<>();
+        startReminderTimer();
+        //senderMessageTimestamps = new HashMap<>();
         questionTimestamps = new HashMap<>();
+        messageTimestamps = new HashMap<>();
     }
 
 
@@ -32,24 +35,18 @@ public class CoachBot extends PircBot {
         resetInactivityTimer(channel);
         long currentTime = System.currentTimeMillis();
 
+        // Nachricht in Kleinbuchstaben umwandeln
+        String lowerCaseMessage = message.toLowerCase();
+
+        // Nachrichtenzähler aktualisieren
+        messageTimestamps.putIfAbsent(lowerCaseMessage, new ArrayList<>());
+        List<Long> messageTimes = messageTimestamps.get(lowerCaseMessage);
+        messageTimes.add(currentTime);
+
+        // Nachrichten Timestamps entfernen (nach einer Minute)
+        messageTimes.removeIf(timestamp -> currentTime - timestamp > 60 * 1000);
+
         if (message.contains("?")) {
-            // Timestamps von Chat Nachrichten aktualisieren
-            senderMessageTimestamps.putIfAbsent(sender, new ArrayList<>());
-            List<Long> timestamps = senderMessageTimestamps.get(sender);
-            timestamps.add(currentTime);
-
-            // Alte Nachrichten Timestamps entfernen (nach einer Minute)
-            timestamps.removeIf(timestamp -> currentTime - timestamp > 60 * 1000);
-
-            // Wurde in der letzten Minute 3-mal eine Frage gestellt? Dann soll der Bot den Streamer darauf hinweisen.
-            if (timestamps.size() >= 3) {
-                sendMessage(channel, "Frage!!!");
-                timestamps.clear(); // Reset the timestamps after sending the message
-            }
-
-            // Nachricht in Kleinbuchstaben umwandeln
-            String lowerCaseMessage = message.toLowerCase();
-
             // Timestamps von Fragen aktualisieren
             questionTimestamps.putIfAbsent(lowerCaseMessage, new ArrayList<>());
             List<Long> questionTimes = questionTimestamps.get(lowerCaseMessage);
@@ -65,9 +62,23 @@ public class CoachBot extends PircBot {
             }
         }
 
+        // Check for spam
+        if (messageTimes.size() >= 10) {
+            sendMessage(channel, "Achtung Spam!");
+            messageTimes.clear(); // Reset the message timestamps after sending the warning
+        }
+
         //Test Nachricht
         if (message.toLowerCase().contains("hallo")) {
             sendMessage(channel, "Hallo ich bin haraldbotspl!");
+        }
+
+        if (message.toLowerCase().contains("tastatur")) {
+            sendMessage(channel, "Ich habe eine Tastatur von Razer, die Blackwidow Elite"); //TechnikFrageFiller
+        }
+
+        if (message.toLowerCase().contains("maus")) {
+            sendMessage(channel, "Ich habe eine Maus von Razer, die Deathadder Elite"); //TechnikFrageFiller
         }
         //Clip funktion verworfen
         /*
@@ -134,9 +145,7 @@ public class CoachBot extends PircBot {
                 sendMessage("#rogup23", "Ganz schön ruhig hier");
                 resetInactivityTimer("#rogup23");
             }
-        }, 2 * 60 * 1000, 2 * 60 * 1000);
-
-        resetReminderTimer("#rogup23");
+        }, 5 * 60 * 1000, 5 * 60 * 1000);
     }
 
     //Setzt den Inaktivitätstimer zurück
@@ -146,16 +155,21 @@ public class CoachBot extends PircBot {
     }
 
     //Setzt den Erinnerungstimer zurück
-    private void resetReminderTimer(String channel) {
+    private void startReminderTimer() {
         reminderTimer = new Timer();
         reminderTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                sendMessage(channel, "Hast du schon etwas getrunken?"); //Erinnerung an den Streamer, etwas zu trinken
+                sendMessage("#rogup23", "Hast du schon etwas getrunken?"); //Erinnerung an den Streamer, etwas zu trinken
                 //analyzeChat();
                 resetReminderTimer("#rogup23");
             }
-        }, 3 * 60 * 1000, 3 * 60 * 1000);
+        }, 10 * 60 * 1000, 10 * 60 * 1000);
+    }
+
+    private void resetReminderTimer(String channel) {
+        reminderTimer.cancel();
+        startReminderTimer();
     }
 
     //gestrichen, eine Stimmungsanalyse mithilfe von KI wäre sinnvoller.
