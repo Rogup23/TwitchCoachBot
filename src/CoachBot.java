@@ -74,11 +74,11 @@ public class CoachBot extends PircBot {
         }
 
         if (message.toLowerCase().contains("tastatur")) {
-            sendMessage(channel, "Ich habe eine Tastatur von Razer, die Blackwidow Elite"); //TechnikFrageFiller
+            sendMessage(channel, "Ich habe eine Tastatur von Razer, die Blackwidow Elite"); //Technik Frage Filler Antwort
         }
 
         if (message.toLowerCase().contains("maus")) {
-            sendMessage(channel, "Ich habe eine Maus von Razer, die Deathadder Elite"); //TechnikFrageFiller
+            sendMessage(channel, "Ich habe eine Maus von Razer, die Deathadder Elite"); //Technik Frage Filler Antwort
         }
         //Clip funktion verworfen
         /*
